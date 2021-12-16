@@ -56,13 +56,19 @@ public class MainActivity extends AppCompatActivity {
     public native double[] notch60lowpass50(double[] data);
     public native double[] FFT(double[] raw);
     public native double[] BandAbs(double[] fft);
-    public native boolean Relax2(double[] band1, double[]  band2);
+    public native boolean Relax(double[] band1, double[]  band2);
+    public native boolean Attention(double[] band1, double[] band2);
+    public native boolean Stress(double[] band1, double[] band2);
     public native double pBandAlpha(double[] filteredData);
+    public native double AttValue(double theta, double smr, double delta, double betah);
+    public native double RelaxValue(double alpha, double delta);
+    public native double StressValue(double delta, double betah);
+    public native double[] MentalState(double[] band1, double[] band2);
 
 
     public ArrayList<String> readFile()
     {
-        InputStream inputData = getResources().openRawResource(R.raw.bytes);
+        InputStream inputData = getResources().openRawResource(R.raw.bytes3);
         ArrayList<String> arraylist = new ArrayList<>();
         try {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputData));
@@ -165,10 +171,30 @@ public class MainActivity extends AppCompatActivity {
                         double[] dFft1 = FFT(raw1);
                         double[] dFft2 = FFT(raw2);
                         double[] abs1 = BandAbs(dFft1);
-                        //Log.d(TAG, "abs1 : "  + abs1[0] + ", " + abs1[1] + ", " + abs1[2] + ", " + abs1[3] + ", " + abs1[4] + ", " + abs1[5] + ", " + abs1[6] + ", " + abs1[7]);
+                        //Log.d(TAG, "Alpha : " + abs1[11]);
                         double[] abs2 = BandAbs(dFft2);
-                        boolean result = Relax2(abs1, abs2);
-                        Log.d(TAG, "Relax2 : " + result +  "      "  + count2);
+                        double ch1_theta = abs1[1];
+                        double ch1_smr = abs1[4];
+                        double ch1_delta = abs1[0];
+                        double ch1_betah = abs1[7];
+                        double ch1_alpha = abs1[11];
+                        double ch2_theta = abs2[1];
+                        double ch2_smr = abs2[4];
+                        double ch2_delta = abs2[0];
+                        double ch2_betah = abs2[7];
+                        double ch2_alpha = abs2[11];
+                        double ch1_AttValue = AttValue(ch1_theta, ch1_smr, ch1_delta, ch1_betah);
+                        double ch1_RelaxValue = RelaxValue(ch1_alpha, ch1_delta);
+                        double ch1_StressValue = StressValue(ch1_delta, ch1_betah);
+                        double ch2_AttValue = AttValue(ch2_theta, ch2_smr, ch2_delta, ch2_betah);
+                        double ch2_RelaxValue = RelaxValue(ch2_alpha, ch2_delta);
+                        double ch2_StressValue = StressValue(ch2_delta, ch2_betah);
+                        double[] mental1 = new double[2];
+                        mental1 = MentalState(abs1, abs2);
+                        double mentalValue1= mental1[0];
+                        double mentalValue2= mental1[1];
+                        //boolean result = Stress(abs1, abs2);
+                        Log.d(TAG, "mentalStateValue1 : " + mentalValue2 +  "      "  + count2);
                         Ch1Buffer.clear();
                         Ch2Buffer.clear();
                         count2++;
