@@ -35,7 +35,10 @@ public class MainActivity extends AppCompatActivity {
     public static ArrayList<Double> Ch2Buffer = new ArrayList<Double>();
     public static double[] Ch1DataArrayToFiltering = new double[250];
     public static double[] Ch2DataArrayToFiltering = new double[250];
-
+    double ch1_deltaTotal = 0, ch1_smrTotal = 0, ch1_thetaTotal = 0, ch1_betaHighTotal = 0, ch1_alphaTotal = 0;
+    double ch1_deltaAvr = 0, ch1_smrAvr = 0, ch1_thetaAvr = 0, ch1_betaHighAvr = 0, ch1_alphaAvr = 0;
+    double ch2_deltaTotal = 0, ch2_smrTotal = 0, ch2_thetaTotal = 0, ch2_betaHighTotal = 0, ch2_alphaTotal = 0;
+    double ch2_deltaAvr = 0, ch2_smrAvr = 0, ch2_thetaAvr = 0, ch2_betaHighAvr = 0, ch2_alphaAvr = 0;
     public static String saveStorage = "";
     static{
         System.loadLibrary("pFilter");
@@ -53,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     public native double[] Ch1ByteTomV(byte[] bytes);
     public native double[] Ch2ByteTomV(byte[] bytes);
     public native double parsingData(int first, int second, int third);
-    public native double[] notch60lowpass50(double[] data);
+    public native double[] notch60lowpass50high1(double[] data);
     public native double[] FFT(double[] raw);
     public native double[] BandAbs(double[] fft);
     public native boolean Relax(double[] band1, double[]  band2);
@@ -149,10 +152,10 @@ public class MainActivity extends AppCompatActivity {
                         Ch2DataArrayToFiltering[240 + i] = ch2_mvData[i];
                     }
                     double[] filteredCh1Data = new double[10];
-                    filteredCh1Data = notch60lowpass50(Ch1DataArrayToFiltering);
+                    filteredCh1Data = notch60lowpass50high1(Ch1DataArrayToFiltering);
                     //Log.d(TAG, "filtered : "  + filteredCh1Data[9]);
                     double[] filteredCh2Data = new double[10];
-                    filteredCh2Data = notch60lowpass50(Ch2DataArrayToFiltering);
+                    filteredCh2Data = notch60lowpass50high1(Ch2DataArrayToFiltering);
                     //Log.d(TAG, "notch : "  + filteredCh1Data[9]);
                     for(int i=0; i < 10; i++)
                     {
@@ -178,28 +181,51 @@ public class MainActivity extends AppCompatActivity {
                         double ch1_delta = abs1[0];
                         double ch1_betah = abs1[7];
                         double ch1_alpha = abs1[11];
+                        double ch1_lowBeta = abs1[5];
                         double ch2_theta = abs2[1];
                         double ch2_smr = abs2[4];
                         double ch2_delta = abs2[0];
                         double ch2_betah = abs2[7];
                         double ch2_alpha = abs2[11];
-                        double ch1_AttValue = AttValue(ch1_theta, ch1_smr, ch1_delta, ch1_betah);
-                        double ch1_RelaxValue = RelaxValue(ch1_alpha, ch1_delta);
-                        double ch1_StressValue = StressValue(ch1_delta, ch1_betah);
-                        double ch2_AttValue = AttValue(ch2_theta, ch2_smr, ch2_delta, ch2_betah);
-                        double ch2_RelaxValue = RelaxValue(ch2_alpha, ch2_delta);
-                        double ch2_StressValue = StressValue(ch2_delta, ch2_betah);
+                        double ch2_lowBeta = abs2[5];
+                        ch1_thetaTotal += ch1_theta;
+                        ch1_smrTotal += ch1_smr;
+                        ch1_deltaTotal += ch1_delta;
+                        ch1_betaHighTotal += ch1_betah;
+                        ch1_alphaTotal += ch1_alpha;
+                        ch2_thetaTotal += ch2_theta;
+                        ch2_smrTotal += ch2_smr;
+                        ch2_deltaTotal += ch2_delta;
+                        ch2_betaHighTotal += ch2_betah;
+                        ch2_alphaTotal += ch2_alpha;
                         double[] mental1 = new double[2];
                         mental1 = MentalState(abs1, abs2);
                         double mentalValue1= mental1[0];
                         double mentalValue2= mental1[1];
                         //boolean result = Stress(abs1, abs2);
-                        Log.d(TAG, "mentalStateValue1 : " + mentalValue2 +  "      "  + count2);
+                        //Log.d(TAG, "ch1_StressValue : " + ch1_StressValue +  "      "  + count2);
                         Ch1Buffer.clear();
                         Ch2Buffer.clear();
                         count2++;
                     }
                 }
+                ch1_thetaAvr = ch1_thetaTotal / (count2 - 1);
+                ch1_smrAvr = ch1_smrTotal / (count2 - 1);
+                ch1_betaHighAvr = ch1_betaHighTotal / (count2 - 1);
+                ch1_deltaAvr = ch1_deltaTotal / (count2 - 1);
+                ch1_alphaAvr = ch1_alphaTotal / (count2 - 1);
+                ch2_thetaAvr = ch2_thetaTotal / (count2 - 1);
+                ch2_smrAvr = ch2_smrTotal / (count2 - 1);
+                ch2_betaHighAvr = ch2_betaHighTotal / (count2 - 1);
+                ch2_deltaAvr = ch2_deltaTotal / (count2 - 1);
+                ch2_alphaAvr = ch2_alphaTotal / (count2 - 1);
+                double Ch1_attValue = AttValue(ch1_thetaAvr, ch1_smrAvr, ch1_deltaAvr, ch1_betaHighAvr);
+                double Ch1_relaxValue = RelaxValue(ch1_alphaAvr, ch1_deltaAvr);
+                double Ch1_stressValue = StressValue(ch1_deltaAvr, ch1_betaHighAvr);
+                double Ch2_attValue = AttValue(ch2_thetaAvr, ch2_smrAvr, ch2_deltaAvr, ch2_betaHighAvr);
+                double Ch2_relaxValue = RelaxValue(ch2_alphaAvr, ch2_deltaAvr);
+                double Ch2_stressValue = StressValue(ch2_deltaAvr, ch2_betaHighAvr);
+                Log.d(TAG, "Ch1_relaxValue : " + Ch1_relaxValue +  "      "  + count2);
             }
 
         });
