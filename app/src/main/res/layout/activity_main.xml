@@ -15,13 +15,14 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
     <LinearLayout
         android:id="@+id/hori_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="8dp">
+        tools:layout_editor_absoluteX="-16dp"
+        tools:layout_editor_absoluteY="-92dp">
 
         <Button
             android:id="@+id/btn1"
@@ -32,5 +33,14 @@
             android:layout_marginTop="100dp"
             android:layout_weight="1"
             android:text="ReadFile Button" />
+
     </LinearLayout>
+
+    <EditText
+        android:id="@+id/editTextDate4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        android:text = "0.6"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

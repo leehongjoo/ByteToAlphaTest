@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -35,10 +36,8 @@ public class MainActivity extends AppCompatActivity {
     public static ArrayList<Double> Ch2Buffer = new ArrayList<Double>();
     public static double[] Ch1DataArrayToFiltering = new double[250];
     public static double[] Ch2DataArrayToFiltering = new double[250];
-    double ch1_deltaTotal = 0, ch1_smrTotal = 0, ch1_thetaTotal = 0, ch1_betaHighTotal = 0, ch1_alphaTotal = 0;
-    double ch1_deltaAvr = 0, ch1_smrAvr = 0, ch1_thetaAvr = 0, ch1_betaHighAvr = 0, ch1_alphaAvr = 0;
-    double ch2_deltaTotal = 0, ch2_smrTotal = 0, ch2_thetaTotal = 0, ch2_betaHighTotal = 0, ch2_alphaTotal = 0;
-    double ch2_deltaAvr = 0, ch2_smrAvr = 0, ch2_thetaAvr = 0, ch2_betaHighAvr = 0, ch2_alphaAvr = 0;
+    double deltaTotal = 0, smrTotal = 0, thetaTotal = 0, betaHighTotal = 0, alphaTotal = 0;
+    double deltaAvr = 0, smrAvr = 0, thetaAvr = 0, betaHighAvr = 0, alphaAvr = 0;
     public static String saveStorage = "";
     static{
         System.loadLibrary("pFilter");
@@ -67,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     public native double RelaxValue(double alpha, double delta);
     public native double StressValue(double delta, double betah);
     public native double[] MentalState(double[] band1, double[] band2);
+    public native void setLevel(double rate);
 
 
     public ArrayList<String> readFile()
@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         text2 = (TextView)findViewById(R.id.text3);
         btn_read = (Button)findViewById(R.id.btn1) ;
+
         for(int i=0; i<250; i++)
         {
             Ch1DataArrayToFiltering[i] = 0;
@@ -110,6 +111,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view)
             {
+                EditText editText1 = (EditText) findViewById(R.id.editTextDate4);
+                String strText = editText1.getText().toString();
+                double rate = Double.parseDouble(strText);
+                Log.d(TAG, "Attention : " + rate +  "      "  + rate);
+                setLevel(rate);
                 ArrayList<String> readData = readFile();
                 int count = 0;
                 int count2 = 1;
@@ -188,44 +194,37 @@ public class MainActivity extends AppCompatActivity {
                         double ch2_betah = abs2[7];
                         double ch2_alpha = abs2[11];
                         double ch2_lowBeta = abs2[5];
-                        ch1_thetaTotal += ch1_theta;
-                        ch1_smrTotal += ch1_smr;
-                        ch1_deltaTotal += ch1_delta;
-                        ch1_betaHighTotal += ch1_betah;
-                        ch1_alphaTotal += ch1_alpha;
-                        ch2_thetaTotal += ch2_theta;
-                        ch2_smrTotal += ch2_smr;
-                        ch2_deltaTotal += ch2_delta;
-                        ch2_betaHighTotal += ch2_betah;
-                        ch2_alphaTotal += ch2_alpha;
+                        thetaTotal += ch1_theta;
+                        smrTotal += ch1_smr;
+                        deltaTotal += ch1_delta;
+                        betaHighTotal += ch1_betah;
+                        alphaTotal += ch1_alpha;
+                        thetaTotal += ch2_theta;
+                        smrTotal += ch2_smr;
+                        deltaTotal += ch2_delta;
+                        betaHighTotal += ch2_betah;
+                        alphaTotal += ch2_alpha;
                         double[] mental1 = new double[2];
                         mental1 = MentalState(abs1, abs2);
                         double mentalValue1= mental1[0];
                         double mentalValue2= mental1[1];
-                        //boolean result = Stress(abs1, abs2);
-                        //Log.d(TAG, "ch1_StressValue : " + ch1_StressValue +  "      "  + count2);
+                        boolean result = Attention(abs1, abs2);
+                        //Log.d(TAG, "Attention : " + result +  "      "  + count2);
                         Ch1Buffer.clear();
                         Ch2Buffer.clear();
                         count2++;
                     }
                 }
-                ch1_thetaAvr = ch1_thetaTotal / (count2 - 1);
-                ch1_smrAvr = ch1_smrTotal / (count2 - 1);
-                ch1_betaHighAvr = ch1_betaHighTotal / (count2 - 1);
-                ch1_deltaAvr = ch1_deltaTotal / (count2 - 1);
-                ch1_alphaAvr = ch1_alphaTotal / (count2 - 1);
-                ch2_thetaAvr = ch2_thetaTotal / (count2 - 1);
-                ch2_smrAvr = ch2_smrTotal / (count2 - 1);
-                ch2_betaHighAvr = ch2_betaHighTotal / (count2 - 1);
-                ch2_deltaAvr = ch2_deltaTotal / (count2 - 1);
-                ch2_alphaAvr = ch2_alphaTotal / (count2 - 1);
-                double Ch1_attValue = AttValue(ch1_thetaAvr, ch1_smrAvr, ch1_deltaAvr, ch1_betaHighAvr);
-                double Ch1_relaxValue = RelaxValue(ch1_alphaAvr, ch1_deltaAvr);
-                double Ch1_stressValue = StressValue(ch1_deltaAvr, ch1_betaHighAvr);
-                double Ch2_attValue = AttValue(ch2_thetaAvr, ch2_smrAvr, ch2_deltaAvr, ch2_betaHighAvr);
-                double Ch2_relaxValue = RelaxValue(ch2_alphaAvr, ch2_deltaAvr);
-                double Ch2_stressValue = StressValue(ch2_deltaAvr, ch2_betaHighAvr);
-                Log.d(TAG, "Ch1_relaxValue : " + Ch1_relaxValue +  "      "  + count2);
+                thetaAvr = thetaTotal / (count2 - 1) / 2;
+                smrAvr = smrTotal / (count2 - 1) / 2;
+                betaHighAvr = betaHighTotal / (count2 - 1) / 2;
+                deltaAvr = deltaTotal / (count2 - 1) / 2;
+                alphaAvr = alphaTotal / (count2 - 1) / 2;
+                double attValue = AttValue(thetaAvr, smrAvr, deltaAvr, betaHighAvr);
+                double relaxValue = RelaxValue(alphaAvr, deltaAvr);
+                double stressValue = StressValue(deltaAvr, betaHighAvr);
+
+                Log.d(TAG, "stressValue : " + stressValue +  "      "  + count2);
             }
 
         });
